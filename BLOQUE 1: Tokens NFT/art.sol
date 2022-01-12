@@ -35,7 +35,7 @@ contract ArtToken is ERC721, Ownable {
     event NewArtWork(address indexed owner, uint256 id, uint256 dna);
 
     // ============================================
-    // Funciones de ayuda 
+    // Help functions 
     // ============================================
 
     // Creation of a random number (required for NFT token properties)
@@ -50,12 +50,6 @@ contract ArtToken is ERC721, Ownable {
         fee = _fee;
     }
 
-    // Extraction of ethers from the Smart Contract to the Owner 
-    function withdraw() external payable onlyOwner {
-        address payable _owner = payable(owner());
-        _owner.transfer(address(this).balance);
-    }
-
     // NFT Token Creation (Artwork)
     function _createArtWork(string memory _name) internal {
         uint8 randRarity = uint8(_createRandomNum(1000));
@@ -67,29 +61,16 @@ contract ArtToken is ERC721, Ownable {
         COUNTER++;
     }
 
-    // ============================================
-    // NFT Token Development
-    // ============================================
-
-    // NFT Token Payment
-    function createRandomArtWork(string memory _name) public payable {
-        require(msg.value >= fee);
-        _createArtWork(_name);
-    }
-
     // Obtaining all created NFT tokens (artwork)
     function getArtWorks() public view returns (Art [] memory) {
         return art_works;
     }
 
     // Visualize the balance of the Smart Contract (ethers)
-    function moneySmartContract() public view returns (uint256){
-        return address(this).balance/10**18;
-    }
-
-    // Visualize the Smart Contract address
-    function addressSmartContract() public view returns (address) {
-        return address(this);
+    function infoSmartContract() public view returns (address, uint256){
+        address SC_address = address(this);
+        uint256 SC_money = address(this).balance/10**18;
+        return (SC_address, SC_money);
     }
 
     // Obtaining a user's NFT tokens
@@ -105,12 +86,27 @@ contract ArtToken is ERC721, Ownable {
         return result;
     }
 
+    // ============================================
+    // NFT Token Development
+    // ============================================
+
+    // NFT Token Payment
+    function createRandomArtWork(string memory _name) public payable {
+        require(msg.value >= fee);
+        _createArtWork(_name);
+    }
+
+    // Extraction of ethers from the Smart Contract to the Owner 
+    function withdraw() external payable onlyOwner {
+        address payable _owner = payable(owner());
+        _owner.transfer(address(this).balance);
+    }
+
     // Level up NFT tokens 
     function levelUp(uint256 _artId) public {
         require(ownerOf(_artId) == msg.sender);
         Art storage art = art_works[_artId];
         art.level++;
     }
-
 
 }
