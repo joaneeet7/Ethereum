@@ -45,11 +45,6 @@ contract ArtToken is ERC721, Ownable {
         return randomNum % _mod; 
     }
 
-    // NFT Token Price Update
-    function updateFee(uint256 _fee) external onlyOwner {
-        fee = _fee;
-    }
-
     // NFT Token Creation (Artwork)
     function _createArtWork(string memory _name) internal {
         uint8 randRarity = uint8(_createRandomNum(1000));
@@ -61,9 +56,9 @@ contract ArtToken is ERC721, Ownable {
         COUNTER++;
     }
 
-    // Obtaining all created NFT tokens (artwork)
-    function getArtWorks() public view returns (Art [] memory) {
-        return art_works;
+    // NFT Token Price Update
+    function updateFee(uint256 _fee) external onlyOwner {
+        fee = _fee;
     }
 
     // Visualize the balance of the Smart Contract (ethers)
@@ -71,6 +66,11 @@ contract ArtToken is ERC721, Ownable {
         address SC_address = address(this);
         uint256 SC_money = address(this).balance/10**18;
         return (SC_address, SC_money);
+    }
+
+    // Obtaining all created NFT tokens (artwork)
+    function getArtWorks() public view returns (Art [] memory) {
+        return art_works;
     }
 
     // Obtaining a user's NFT tokens
