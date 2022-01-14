@@ -24,7 +24,7 @@ contract Cinema is ERC20, Ownable {
     mapping(address => customer) public Customers;
 
     // ============================================
-    // Token Management
+    // Token Management 
     // ============================================
 
     // Function to set the price of a Token
