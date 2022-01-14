@@ -4,136 +4,149 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Disney is ERC20, Ownable{
+contract Cinema is ERC20, Ownable{
     
     // ============================================
     // Initial Statements
     // ============================================
     
     // Constructor 
-    constructor() ERC20("Disney", "JA") {
+    constructor() ERC20("Movies", "MC") {
         _mint(address(this), 1000);
     }
     
-    // Estructura de datos para almacenar a los clientes de Disney
-    struct cliente {
-        uint tokens_comprados;
-        string [] atracciones_disfrutadas;
+    // Data structure to store customer data
+    struct customer {
+        uint tokens_purchased;
+        string [] enjoyed_movies;
     }
     
-    // Mapping para el registro de clientes
-    mapping (address => cliente) public Clientes;
+    // Mapping for customer registration
+    mapping (address => customer) public Customers;
     
     // ============================================
     // Token Management
     // ============================================
 
-    // Funcion para establecer el precio de un Token 
-    function PrecioTokens(uint _numTokens) internal pure returns (uint) {
-        // Conversion de Tokens a Ethers: 1 Token -> 1 ether
+    // Function to set the price of a Token 
+    function priceTokens(uint _numTokens) internal pure returns (uint) {
         return _numTokens*(1 ether);
     }
-    
-    // Funcion para comprar Tokens en disney y disfrutar de las atracciones 
-    function CompraTokens(uint _numTokens) public payable {
-        // Establecer el precio de los Tokens
-        uint coste = PrecioTokens(_numTokens);
-        // Se evalua el dinero que el cliente paga por los Tokens
-        require (msg.value >= coste, "Compra menos Tokens o paga con mas ethers.");
-        // Diferencia de lo que el cliente paga
-        uint returnValue = msg.value - coste;
-        // Disney retorna la cantidad de ethers al cliente
-        payable(msg.sender).transfer(returnValue);
-        // Obtencion del numero de tokens disponibles
-        uint Balance = balanceTokens(address(this));
-        require(_numTokens <= Balance, "Compra un numero menor de Tokens");
-        // Se transfiere el numero de tokens al cliente
-        _transfer(address(this), msg.sender, _numTokens);
-        increaseAllowance(msg.sender, _numTokens);
-        // Registro de tokens comprados
-        Clientes[msg.sender].tokens_comprados += _numTokens;
-    }
-    
-    // Balance de tokens de una dirección
+
+    // Function to view the account token balance
     function balanceTokens(address _account) public view returns (uint) {
         return balanceOf(_account);
     }
-
-    // Mint more tokens
+    
+    // Function to mint more tokens
     function mint(uint256 _amount) public onlyOwner{
         _mint(address(this), _amount);
+    }
+
+    // Function to buy tokens 
+    function purchaseTokens(uint _numTokens) public payable {
+        // Set the price of the tokens
+        uint cost = priceTokens(_numTokens);
+        // The money that the customer pays for the tokens is evaluated
+        require (msg.value >= cost, "Buy less tokens or pay with more ethers.");
+        // The returnValue is defined as what the customer pays minus what the product is worth.
+        uint returnValue = msg.value - cost;
+        // The company returns the amount of ethers to the customer
+        payable(msg.sender).transfer(returnValue);
+        // Obtaining the number of tokens available from the Smart contract
+        uint balance = balanceTokens(address(this));
+        require(_numTokens <= balance, 
+                "Buy a smaller number of tokens.");
+        // The number of tokens purchased is transferred to the customer
+        _transfer(address(this), msg.sender, _numTokens);
+        // Registration of purchased tokens
+        Customers[msg.sender].tokens_purchased += _numTokens;
+    }
+
+    // Function for a customer to exchange tokens for ethers
+    function tokensEthers (uint _numTokens) public payable {
+        // Verify that the number of tokens to be returned is positive
+        require (_numTokens > 0, 
+                "You need to return a positive amount of tokens.");
+        // The user must have the number of tokens to be returned
+        require (_numTokens <= balanceTokens(msg.sender), 
+                "You do not have the tokens you wish to return");
+        // Step-1: Sending tokens to the Smart contract
+        _transfer(msg.sender, address(this), _numTokens);
+        // Step-2: Sending ethers to the customer
+        payable(msg.sender).transfer(priceTokens(_numTokens));
     }
 
     // ============================================
     // Company management
     // ============================================
 
-    // Eventos 
-    event disfruta_atraccion(string, uint, address);
-    event nueva_atraccion(string, uint);
-    event baja_atraccion(string);
+    // Events 
+    event enjoy_movie(string, uint, address);
+    event new_movie(string, uint);
+    event delete_movie(string);
     
-    // Estructura de la atraccion 
-    struct atraccion {
-        string nombre_atraccion;
-        uint precio_atraccion;
-        bool estado_atraccion;
+    // Data structure for movies
+    struct movie {
+        string movie_name;
+        uint movie_price;
+        bool movie_status;
     }
     
-    // Mapping para relacion un nombre de una atraccion con una estructura de datos de la atraccion
-    mapping (string => atraccion) public MappingAtracciones;
+    // Mapping to relate a movie name to a movie data structure
+    mapping (string => movie) public MappingMovies;
     
-    // Array para almacenar el nombre de las atracciones 
-    string [] public Atracciones;
-    
-    // Mapping para relacionar una identidad (cliente) con su historial de atracciones en DISNEY
-    mapping (address => string []) public HistorialAtracciones;
-    
-    // Crear nuevas atracciones para DISNEY (SOLO es ejecutable por Disney)
-    function NuevaAtraccion(string memory _nombreAtraccion, uint _precio) public onlyOwner {
-        // Creacion de una atraccion en Disney 
-        MappingAtracciones[_nombreAtraccion] = atraccion(_nombreAtraccion,_precio, true);
-        // Almacenamiento en un array el nombre de la atraccion 
-        Atracciones.push(_nombreAtraccion);
-        // Emision del evento para la nueva atraccion 
-        emit nueva_atraccion(_nombreAtraccion, _precio);
+    // Array for storing the name of the movies 
+    string [] Movies;
+
+    // Incorporate new films into the cinema
+    function newMovie(string memory _movie_name, uint _movie_price) public onlyOwner {
+        // Creation of a new movie for the cinema 
+        MappingMovies[_movie_name] = movie(_movie_name,_movie_price, true);
+        // Storing the movie name in an array 
+        Movies.push(_movie_name);
+        // Broadcast event for new movie created 
+        emit new_movie(_movie_name, _movie_price);
     }
     
-    // Dar de baja a las atracciones en Disney 
-    function BajaAtraccion (string memory _nombreAtraccion) public onlyOwner{
-        // El estado de la atraccion pasa a FALSE => No esta en uso 
-        MappingAtracciones[_nombreAtraccion].estado_atraccion = false;
-        // Emision del evento para la baja de la atraccion 
-        emit baja_atraccion(_nombreAtraccion);
+    // Function to remove a movie from the cinema
+    function deleteMovie (string memory _movie_name) public onlyOwner{
+        // Movie status is set to FALSE => Not available in the cinema
+        MappingMovies[_movie_name].movie_status = false;
+        // Emission of the event for the elimination of the movie 
+        emit delete_movie(_movie_name);
      }
     
-    // Funcion para subirse a una atraccion de disney y pagar en tokens 
-    function SubirseAtraccion (string memory _nombreAtraccion) public {
-        // Precio de la atraccion (en tokens)
-        uint tokens_atraccion = MappingAtracciones[_nombreAtraccion].precio_atraccion;
-        // Verifica el estado de la atraccion (si esta disponible para su uso)
-        require (MappingAtracciones[_nombreAtraccion].estado_atraccion == true, 
-                    "La atraccion no esta disponible en estos momentos.");
-        // Verifica el numero de tokens que tiene el cliente para subirse a la atraccion 
-        require(tokens_atraccion <= balanceTokens(address(this)), 
-                "Necesitas mas Tokens para subirte a esta atraccion.");
-        _transfer(msg.sender, address(this), tokens_atraccion);
-        // Almacenamiento en el historial de atracciones del cliente 
-        HistorialAtracciones[msg.sender].push(_nombreAtraccion);
-        // Emision del evento para disfrutar de la atraccion 
-        emit disfruta_atraccion(_nombreAtraccion, tokens_atraccion, msg.sender);
+    // Function to watch a movie and pay tokens for it
+    function watchMovie (string memory _movie_name) public {
+        // Price of the movie (in tokens)
+        uint movie_tokens = MappingMovies[_movie_name].movie_price;
+        // Verify the status of the movie (if it is available for watching)
+        require (MappingMovies[_movie_name].movie_status == true, 
+                "This movie is not available in this cinema.");
+        // Verify the number of tokens the client has to watch the movie
+        require(movie_tokens <= balanceTokens(address(this)), 
+                "You need more tokens to watch this movie.");
+        _transfer(msg.sender, address(this), movie_tokens);
+        // Storage in the client's history of watched movies
+        Customers[msg.sender].enjoyed_movies.push(_movie_name);
+        // Broadcasting of the event to enjoy the movie 
+        emit enjoy_movie(_movie_name, movie_tokens, msg.sender);
     }
 
-    // Funcion para que un cliente de Disney pueda devolver Tokens 
-    function DevolverTokens (uint _numTokens) public payable {
-        // El numero de tokens a devolver es positivo
-        require (_numTokens > 0, "Necesitas devolver una cantidad positiva de tokens.");
-        // El usuario debe tener el numero de tokens que desea devolver 
-        require (_numTokens <= balanceTokens(msg.sender), "No tienes los tokens que deseas devolver.");
-        // El cliente devuelve los tokens 
-        _transfer(msg.sender, address(this), _numTokens);
-         // Devolucion de los ethers al cliente 
-         payable(msg.sender).transfer(PrecioTokens(_numTokens));
+    // ============================================
+    // Information storage
+    // ============================================
+
+    // Function to visualize the movie history
+    function movieHistory() public view returns (string [] memory){
+        return Customers[msg.sender].enjoyed_movies;
     }
+
+    // Function for displaying movies available in the cinema
+    function cinema_schedule() public view returns (string [] memory) {
+        return Movies;
+    }
+    
     
 }
