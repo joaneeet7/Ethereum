@@ -148,5 +148,4 @@ contract Cinema is ERC20, Ownable{
         return Movies;
     }
     
-    
 }
