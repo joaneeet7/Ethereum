@@ -32,14 +32,10 @@ contract variables_modifiers {
     address public address2 = msg.sender;
 
     // Enumeration variable
-    enum options {
-        ON,
-        OFF
-    }
+    enum options {ON, OFF}
     options state;
     options constant defaultChoice = options.OFF;
 
-    // Operations with the variable enum
     function turnOn() public {
         state = options.ON;
     }
@@ -48,11 +44,8 @@ contract variables_modifiers {
         state = options.OFF;
     }
 
-    function displayState() public view returns (options) {
+    function displayState() public view returns (options){
         return state;
     }
 
-    function displayDefaultChoice() public pure returns (uint256) {
-        return uint256(defaultChoice);
-    }
 }
