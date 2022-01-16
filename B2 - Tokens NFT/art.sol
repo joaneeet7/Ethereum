@@ -10,14 +10,13 @@ contract ArtToken is ERC721, Ownable {
     // ============================================
 
     // Smart Contract Constructor
-    constructor(string memory _name, string memory _symbol)
-        ERC721(_name, _symbol)
-    {}
+    constructor (string memory _name, string memory _symbol)
+    ERC721(_name, _symbol){}
 
     // NFT token counter
     uint256 COUNTER;
 
-    // Pricing of NFT tokens (price of the artwork)
+    // Pricing of NFT Tokens (price of the artwork)
     uint256 fee = 5 ether;
 
     // Data structure with the properties of the artwork
@@ -28,23 +27,22 @@ contract ArtToken is ERC721, Ownable {
         uint8 level;
         uint8 rarity;
     }
-    // Storage structure for keeping works of art
-    Art[] public art_works;
 
-    // Declaration of an event
-    event NewArtWork(address indexed owner, uint256 id, uint256 dna);
+    // Storage structure for keeping artworks
+    Art [] public art_works;
 
+    // Declaration of an event 
+    event NewArtWork (address indexed owner, uint256 id, uint256 dna);
+    
     // ============================================
     // Help functions
     // ============================================
 
     // Creation of a random number (required for NFT token properties)
-    function _createRandomNum(uint256 _mod) internal view returns (uint256) {
-        bytes32 hash_randonNum = keccak256(
-            abi.encodePacked(block.timestamp, msg.sender)
-        );
-        uint256 randomNum = uint256(hash_randonNum);
-        return randomNum % _mod;
+    function _createRandomNum(uint256 _mod) internal view returns (uint256){
+        bytes32 has_randomNum = keccak256(abi.encodePacked(block.timestamp, msg.sender));
+        uint256 randonNum = uint256(has_randomNum);
+        return randonNum % _mod;
     }
 
     // NFT Token Creation (Artwork)
@@ -58,33 +56,29 @@ contract ArtToken is ERC721, Ownable {
         COUNTER++;
     }
 
-    // NFT Token Price Update
+    // NFT Token Price Update 
     function updateFee(uint256 _fee) external onlyOwner {
         fee = _fee;
     }
 
     // Visualize the balance of the Smart Contract (ethers)
-    function infoSmartContract() public view returns (address, uint256) {
+    function infoSmartContract() public view returns(address, uint256){
         address SC_address = address(this);
         uint256 SC_money = address(this).balance / 10**18;
         return (SC_address, SC_money);
     }
 
     // Obtaining all created NFT tokens (artwork)
-    function getArtWorks() public view returns (Art[] memory) {
+    function getArtWorks() public view returns (Art [] memory){
         return art_works;
     }
 
     // Obtaining a user's NFT tokens
-    function getOwnerArtWork(address _owner)
-        public
-        view
-        returns (Art[] memory)
-    {
-        Art[] memory result = new Art[](balanceOf(_owner));
+    function getOwnerArtWork(address _owner) public view returns (Art [] memory){
+        Art [] memory result = new Art[](balanceOf(_owner));
         uint256 counter_owner = 0;
-        for (uint256 i = 0; i < art_works.length; i++) {
-            if (ownerOf(i) == _owner) {
+        for (uint256 i = 0; i < art_works.length; i++){
+            if (ownerOf(i) == _owner){
                 result[counter_owner] = art_works[i];
                 counter_owner++;
             }
@@ -103,15 +97,17 @@ contract ArtToken is ERC721, Ownable {
     }
 
     // Extraction of ethers from the Smart Contract to the Owner
-    function withdraw() external payable onlyOwner {
+    function withdraw() external payable onlyOwner{
         address payable _owner = payable(owner());
         _owner.transfer(address(this).balance);
     }
 
-    // Level up NFT tokens
+    // Level up NFT Tokens
     function levelUp(uint256 _artId) public {
         require(ownerOf(_artId) == msg.sender);
         Art storage art = art_works[_artId];
         art.level++;
     }
+
+
 }
